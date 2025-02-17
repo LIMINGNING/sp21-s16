@@ -137,9 +137,9 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                if (b.tile(i,j) == null) {
+        for (int c = 0; c < b.size(); c++) {
+            for (int r = 0; r < b.size(); r++) {
+                if (b.tile(c,r) == null) {
                     return true;
                 }
             }
@@ -153,12 +153,12 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                if (b.tile(i,j) == null) {
+        for (int c = 0; c < b.size(); c++) {
+            for (int r = 0; r < b.size(); r++) {
+                if (b.tile(c,r) == null) {
                     continue;
                 }
-                else if (b.tile(i,j).value() == MAX_PIECE) {
+                else if (b.tile(c,r).value() == MAX_PIECE) {
                     return true;
                 }
                 else {
@@ -180,17 +180,17 @@ public class Model extends Observable {
          * We only need to check the top and right of the tile.
          * Pay attention to whether they are empty (null).
          */
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                if (b.tile(i,j) == null) {
+        for (int c = 0; c < b.size(); c++) {
+            for (int r = 0; r < b.size(); r++) {
+                if (b.tile(c,r) == null) {
                     return true;
                 }
 
-                if (j < 3 && b.tile(i,j).value() == b.tile(i,j+1).value()) {
+                if (r < 3 && b.tile(c,r).value() == b.tile(c,r+1).value()) {
                     return true;
                 }
 
-                if (i < 3 && b.tile(i,j).value() == b.tile(i+1,j).value()) {
+                if (c < 3 && b.tile(c,r).value() == b.tile(c+1,r).value()) {
                     return true;
                 }
             }
