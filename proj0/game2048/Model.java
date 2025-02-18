@@ -114,11 +114,96 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+        moveAllUp(this.board);
+        for (int column = 0; column <= 3; column++) {
+            mergeTile(this.board,column);
+        }
+
+        changed = true;
+
         checkGameOver();
         if (changed) {
             setChanged();
         }
         return changed;
+    }
+
+    /* 给定一列，完成一列的up操作 */
+    public void mergeTile(Board b, int column) {
+        int sum = 0;
+        for (int row = 3; row-1 >= 0; row--) {
+            if (b.tile(column,row) == null) {
+                return;
+            }
+            else if (b.tile(column,row) != null && b.tile(column,row-1) != null) {
+                mergeTileHelper(b,column,row);
+                moveTileUpAsFarAsPossible(b,column,3);
+            }
+        }
+        return;
+    }
+
+    /* 传入一个tile的column和row，将其下侧的tile合并到上侧 */
+    public void mergeTileHelper(Board b, int column, int row) {
+        if (b.tile(column,row).value() == b.tile(column,row-1).value()) {
+            b.move(column,row,b.tile(column,row-1));
+            score += b.tile(column,row).value();
+        }
+        return;
+    }
+
+    /* 将全部的方格尽可能向上移 */
+    public void moveAllUp(Board b) {
+        for (int column = 0; column <= 3; column++) {
+            moveTileUpAsFarAsPossible(b,column,3);
+        }
+    }
+
+    /* 将给定列的所有方格尽可能向上移（传入参数row恒为3） */
+    public void moveTileUpAsFarAsPossible(Board b, int column, int row) {
+        if (b.tile(column,row) == null) {
+            int nextNonZero = getNextNonZeroRow(b,column,row);
+            if (nextNonZero == -1)
+            {
+                return;
+            }
+            else {
+                b.move(column,row,b.tile(column,nextNonZero));
+                moveTileUpAsFarAsPossible(b,column,getNextRow(row));
+            }
+        }
+        else {
+            if (getNextRow(row) != -1) {
+                moveTileUpAsFarAsPossible(b,column,getNextRow(row));
+            }
+            else {
+                return;
+            }
+        }
+    }
+
+    /* 获得下一个非0元素的位置，如果越界，则返回-1（这一列均为空） */
+    public int getNextNonZeroRow(Board b,int column, int row) {
+        int nextRow = getNextRow(row);
+        if (nextRow == -1){
+            return -1;
+        }
+        if (b.tile(column,nextRow) == null) {
+            return getNextNonZeroRow(b,column,nextRow);
+        }
+        else {
+            return nextRow;
+        }
+    }
+
+    /* 如果下一个row比0小（越界），则返回-1，否则返回下一个row（即row-1） */
+    public int getNextRow(int row) {
+        if (row - 1 >= 0) {
+            return row - 1;
+        }
+        else {
+            return -1;
+        }
     }
 
     /** Checks if the game is over and sets the gameOver variable
