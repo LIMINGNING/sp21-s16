@@ -114,9 +114,10 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+        board.setViewingPerspective(side);
         changed = moveAllUp(this.board);
         for (int column = 0; column <= 3; column++) {
-            if (mergeTile(this.board,column)) {
+            if (mergeOneColumn(this.board,column)) {
                 changed = true;
             }
         }
@@ -125,26 +126,39 @@ public class Model extends Observable {
         if (changed) {
             setChanged();
         }
+
+        board.setViewingPerspective(Side.NORTH);
         return changed;
     }
 
-    /* 给定一列，完成一列的up操作 */
-    public boolean mergeTile(Board b, int column) {
+    /**
+     * Given a column, complete the up operation for a column.
+     * @param b Board b.
+     * @param column Given column.
+     * @return If the board is changed, return true.
+     */
+    public boolean mergeOneColumn(Board b, int column) {
         boolean[] checkChanged = new boolean[4];
         for (int row = 3; row-1 >= 0; row--) {
             if (b.tile(column,row) == null && row == 3) {
                 return false;
             }
             else if (b.tile(column,row) != null && b.tile(column,row-1) != null) {
-                checkChanged[row] = mergeTileHelper(b,column,row);
-                moveTileUpOneColumnAFAP(b,column);
+                checkChanged[row] = mergeOneColumnHelper(b,column,row);
+                moveTileUpOneColumnAsFarAsPossible(b,column);
             }
         }
         return checkChanged[1] || checkChanged[2] || checkChanged[3];
     }
 
-    /* 传入一个tile的column和row，将其下侧的tile合并到上侧 */
-    public boolean mergeTileHelper(Board b, int column, int row) {
+    /**
+     * Move b.tile(column,row-1) to b.tile(column,row) if it is possible.
+     * @param b Board b.
+     * @param column Given column.
+     * @param row Given row.
+     * @return If this merge is successful, return true.
+     */
+    public boolean mergeOneColumnHelper(Board b, int column, int row) {
         boolean flag = false;
         if (b.tile(column,row).value() == b.tile(column,row-1).value()) {
             b.move(column,row,b.tile(column,row-1));
@@ -154,18 +168,26 @@ public class Model extends Observable {
         return flag;
     }
 
-    /* 将全部的方格尽可能向上移,移动过程中board变化返回true */
+    /**
+     * Move all tiles up as far as possible.
+     * @param b Board b.
+     * @return If the board is changed, return true.
+     */
     public boolean moveAllUp(Board b) {
         boolean[] checkChanged = new boolean[4];
         for (int column = 0; column <= 3; column++) {
-//          moveTileUpAsFarAsPossible(b,column,3);
-            checkChanged[column] = moveTileUpOneColumnAFAP(b,column);
+            checkChanged[column] = moveTileUpOneColumnAsFarAsPossible(b,column);
         }
         return checkChanged[0] || checkChanged[1] || checkChanged[2] || checkChanged[3];
     }
 
-    /* 给定一列，将这一列的方格尽可能向上移，如果board改变，返回true */
-    public boolean moveTileUpOneColumnAFAP(Board b, int column) {
+    /**
+     * Move tiles in the given column up as far as possible.
+     * @param b Board b.
+     * @param column Given column.
+     * @return If the board is changed, return true.
+     */
+    public boolean moveTileUpOneColumnAsFarAsPossible(Board b, int column) {
         boolean[] checkChanged = new boolean[4];
         for (int row = 3; row-1 >= 0; row--) {
             if (b.tile(column,row) == null) {
@@ -188,7 +210,14 @@ public class Model extends Observable {
         return checkChanged[1] || checkChanged[2] || checkChanged[3];
     }
 
-    /* 将给定列的所有方格尽可能向上移（传入参数row恒为3），递归实现，缺点是不能判断board是否改变 */
+    /**
+     * Move all the tiles in the given column as far as possible (row = 3).
+     * implemented recursively.
+     * The drawback is that it is hard to determine whether the board has changed (this function is not used).
+     * @param b Board b.
+     * @param column Given column.
+     * @param row Given Row.
+     */
     public void moveTileUpAsFarAsPossible(Board b, int column, int row) {
         if (b.tile(column,row) == null) {
             int nextNonZero = getNextNonZeroRow(b,column,row);
@@ -211,7 +240,14 @@ public class Model extends Observable {
         }
     }
 
-    /* 获得下一个非0元素的位置，如果越界，则返回-1（这一列均为空） */
+    /**
+     * Get the row number of the next non-zero element in the column where the given tile is located.
+     * @param b Board b.
+     * @param column Given column.
+     * @param row Given row.
+     * @return The row number of the next non-zero element.
+     * If the next non-zero element does not exist, return -1.
+     */
     public int getNextNonZeroRow(Board b,int column, int row) {
         int nextRow = getNextRow(row);
         if (nextRow == -1){
@@ -225,7 +261,12 @@ public class Model extends Observable {
         }
     }
 
-    /* 如果下一个row比0小（越界），则返回-1，否则返回下一个row（即row-1） */
+    /**
+     * Get the row number of the next element.
+     * @param row Given row.
+     * @return If row < 0 (out of the line), return -1.
+     * Return the row number of the next element.
+     */
     public int getNextRow(int row) {
         if (row - 1 >= 0) {
             return row - 1;
