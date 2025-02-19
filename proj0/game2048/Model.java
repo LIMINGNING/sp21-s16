@@ -114,7 +114,12 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
-        changed = true;
+        changed = moveAllUp(this.board);
+        for (int column = 0; column <= 3; column++) {
+            if (mergeTile(this.board,column)) {
+                changed = true;
+            }
+        }
 
         checkGameOver();
         if (changed) {
@@ -124,34 +129,39 @@ public class Model extends Observable {
     }
 
     /* 给定一列，完成一列的up操作 */
-    public void mergeTile(Board b, int column) {
-        int sum = 0;
+    public boolean mergeTile(Board b, int column) {
+        boolean[] checkChanged = new boolean[4];
         for (int row = 3; row-1 >= 0; row--) {
-            if (b.tile(column,row) == null) {
-                return;
+            if (b.tile(column,row) == null && row == 3) {
+                return false;
             }
             else if (b.tile(column,row) != null && b.tile(column,row-1) != null) {
-                mergeTileHelper(b,column,row);
-                moveTileUpAsFarAsPossible(b,column,3);
+                checkChanged[row] = mergeTileHelper(b,column,row);
+                moveTileUpOneColumnAFAP(b,column);
             }
         }
-        return;
+        return checkChanged[1] || checkChanged[2] || checkChanged[3];
     }
 
     /* 传入一个tile的column和row，将其下侧的tile合并到上侧 */
-    public void mergeTileHelper(Board b, int column, int row) {
+    public boolean mergeTileHelper(Board b, int column, int row) {
+        boolean flag = false;
         if (b.tile(column,row).value() == b.tile(column,row-1).value()) {
             b.move(column,row,b.tile(column,row-1));
             score += b.tile(column,row).value();
+            flag = true;
         }
-        return;
+        return flag;
     }
 
-    /* 将全部的方格尽可能向上移 */
-    public void moveAllUp(Board b) {
+    /* 将全部的方格尽可能向上移,移动过程中board变化返回true */
+    public boolean moveAllUp(Board b) {
+        boolean[] checkChanged = new boolean[4];
         for (int column = 0; column <= 3; column++) {
-            moveTileUpAsFarAsPossible(b,column,3);
+//          moveTileUpAsFarAsPossible(b,column,3);
+            checkChanged[column] = moveTileUpOneColumnAFAP(b,column);
         }
+        return checkChanged[0] || checkChanged[1] || checkChanged[2] || checkChanged[3];
     }
 
     /* 给定一列，将这一列的方格尽可能向上移，如果board改变，返回true */
@@ -178,7 +188,7 @@ public class Model extends Observable {
         return checkChanged[1] || checkChanged[2] || checkChanged[3];
     }
 
-    /* 将给定列的所有方格尽可能向上移（传入参数row恒为3） */
+    /* 将给定列的所有方格尽可能向上移（传入参数row恒为3），递归实现，缺点是不能判断board是否改变 */
     public void moveTileUpAsFarAsPossible(Board b, int column, int row) {
         if (b.tile(column,row) == null) {
             int nextNonZero = getNextNonZeroRow(b,column,row);
@@ -290,7 +300,15 @@ public class Model extends Observable {
                     return true;
                 }
 
+                if (r < 3 && b.tile(c,r+1) == null) {
+                    return true;
+                }
+
                 if (r < 3 && b.tile(c,r).value() == b.tile(c,r+1).value()) {
+                    return true;
+                }
+
+                if (c < 3 && b.tile(c+1,r) == null) {
                     return true;
                 }
 
