@@ -114,11 +114,6 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
-        moveAllUp(this.board);
-        for (int column = 0; column <= 3; column++) {
-            mergeTile(this.board,column);
-        }
-
         changed = true;
 
         checkGameOver();
@@ -157,6 +152,30 @@ public class Model extends Observable {
         for (int column = 0; column <= 3; column++) {
             moveTileUpAsFarAsPossible(b,column,3);
         }
+    }
+
+    /* 给定一列，将这一列的方格尽可能向上移，如果board改变，返回true */
+    public boolean moveTileUpOneColumnAFAP(Board b, int column) {
+        boolean[] checkChanged = new boolean[4];
+        for (int row = 3; row-1 >= 0; row--) {
+            if (b.tile(column,row) == null) {
+                int nextNonZero = getNextNonZeroRow(b,column,row);
+                if (nextNonZero == -1 && row == 3) {
+                    return false;
+                }
+                else if (nextNonZero == -1) {
+                    continue;
+                }
+                else {
+                    b.move(column,row,b.tile(column,nextNonZero));
+                    checkChanged[row] = true;
+                }
+            }
+            else {
+                continue;
+            }
+        }
+        return checkChanged[1] || checkChanged[2] || checkChanged[3];
     }
 
     /* 将给定列的所有方格尽可能向上移（传入参数row恒为3） */
